@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataCapsule Terminal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #000000;
+            font-family: 'Courier New', Courier, monospace;
+            color: #00FF00; /* Green text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .terminal {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            background-color: #1a1a1a;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            font-size: 1.2em;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+        }
+
+        .header {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #FF0000; /* Red text */
+            text-align: center;
+            margin-bottom: 1px;
+        }
+
+        .terminal .prompt {
+            color: #FF0000; /* Red */
+            font-weight: bold;
+        }
+
+        .terminal .line {
+            color: #0000FF; /* Blue */
+        }
+
+        .terminal .input-label {
+            color: #00FF00; /* Green */
+        }
+
+        .id-display {
+            color: #00FF00; /* Green for entered ID */
+        }
+
+        .id-prompt {
+            color: #0000FF; /* Blue for ID entered prompt */
+        }
+
+        /* Input Field Styling */
+        .user-input, .password-input, .username-input, .confirm-password-input {
+            background: transparent;
+            border: none;
+            color: #00FF00; /* Green text */
+            font-size: 1.2em; /* Match terminal text size */
+            font-family: 'Courier New', Courier, monospace;
+            width: 100%;
+            outline: none;
+        }
+
+        .password-input, .confirm-password-input {
+            letter-spacing: 0.3em; /* Adds spacing for masked characters */
+            -webkit-text-security: disc; /* Mask input with dots (●) */
+        }
+
+        /* Background Grid */
+        .grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/black-linen.png');
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .description {
+            color: #00FF00;
+            font-size: 1.2em;
+            margin-top: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .button {
+            color: #FF0000;
+            font-size: 1.2em;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="grid"></div>
+
+    <!-- Static DataCapsule Header -->
+    <div class="header">
+        ┌──────────────┬─────────────────────────────┐<br>
+          DataCapsule     Secure Your Digital Space<br>
+        └──────────────┴─────────────────────────────┘
+    </div>
+	
+<!-- Description -->
+<div class="description">
+    DataCapsule is a secure, web-based digital locker for storing and accessing sensitive text-based data from anywhere.
+</div>
+
+<div class="terminal">
+    <!-- Terminal content -->
+    <div class="prompt">┌──(root@user)-[~]</div>
+    <div class="line">└─$ Initializing system...</div>
+    <div class="line">└─$ Connecting to server...</div>
+    <div class="line">└─$ System check complete.</div>
+    
+    <!-- Sign Up or Login -->
+    <div class="line input-label" id="login-prompt">└─$ Enter your ID:</div>
+    <input type="text" class="user-input" id="id-input" placeholder="Type your ID here..." autofocus onkeydown="handleIDInput(event)">
+    <div class="line id-display" id="id-display" style="display:none;"></div>
+    
+    <div class="line input-label password-prompt" id="password-prompt" style="display:none;">└─$ Enter your password:</div>
+    <input type="password" class="password-input" id="password-input" placeholder="Password" style="display:none;" onkeydown="handlePasswordInput(event)">
+    
+    <!-- Sign Up Form -->
+    <div class="line input-label sign-up-prompt" id="sign-up-prompt" style="display:none;">└─$ Create a username:</div>
+    <input type="text" class="username-input" id="username-input" placeholder="Choose a username" style="display:none;" onkeydown="handleSignUpInput(event)">
+    
+    <div class="line input-label confirm-password-prompt" id="confirm-password-prompt" style="display:none;">└─$ Confirm your password:</div>
+    <input type="password" class="confirm-password-input" id="confirm-password-input" placeholder="Confirm Password" style="display:none;" onkeydown="handleConfirmPasswordInput(event)">
+    
+    <!-- Switch Between Login and Sign Up -->
+    <div class="button" id="switch-to-sign-up" onclick="switchToSignUp()">Sign Up</div>
+    <div class="button" id="switch-to-login" onclick="switchToLogin()" style="display:none;">Back to Login</div>
+</div>
+
+<script>
+    const idInput = document.querySelector('#id-input');
+    const idDisplay = document.querySelector('#id-display');
+    const passwordPrompt = document.querySelector('#password-prompt');
+    const passwordInput = document.querySelector('#password-input');
+    const signUpPrompt = document.querySelector('#sign-up-prompt');
+    const usernameInput = document.querySelector('#username-input');
+    const confirmPasswordPrompt = document.querySelector('#confirm-password-prompt');
+    const confirmPasswordInput = document.querySelector('#confirm-password-input');
+    const switchToSignUpBtn = document.querySelector('#switch-to-sign-up');
+    const switchToLoginBtn = document.querySelector('#switch-to-login');
+
+    // Predefined credentials for demo purposes
+    const predefinedID = 'user123';
+    const predefinedPassword = 'pass123';
+
+    // Mock sign-up data (for demo purposes)
+    let users = [];
+
+    function handleIDInput(event) {
+        if (event.key === 'Enter' && idInput.value.trim() !== '') {
+            const enteredID = idInput.value.trim();
+            idDisplay.innerHTML = `└─$ <span class="id-prompt">ID entered:</span> <span class="id-display">${enteredID}</span>`;
+            idDisplay.style.display = 'block'; // Display entered ID
+            idInput.style.display = 'none'; // Hide ID input field
+            passwordPrompt.style.display = 'block'; // Show password prompt
+            passwordInput.style.display = 'block'; // Show password input field
+            passwordInput.focus(); // Focus on password input field
+        }
+    }
+
+    function handlePasswordInput(event) {
+        if (event.key === 'Enter' && passwordInput.value.trim() !== '') {
+            const enteredPassword = passwordInput.value.trim();
+            const enteredID = idInput.value.trim();
+
+            // Check if entered ID and password match predefined ones
+            if (enteredID === predefinedID && enteredPassword === predefinedPassword) {
+                alert('Authentication successful!');
+            } else {
+                alert('Invalid ID or password. Please try again.');
+            }
+        }
+    }
+
+    function handleSignUpInput(event) {
+        if (event.key === 'Enter' && usernameInput.value.trim() !== '') {
+            const enteredUsername = usernameInput.value.trim();
+            signUpPrompt.innerHTML = `└─$ <span class="id-prompt">Username created:</span> <span class="id-display">${enteredUsername}</span>`;
+            signUpPrompt.style.display = 'block';
+            usernameInput.style.display = 'none';
+            confirmPasswordPrompt.style.display = 'block';
+            confirmPasswordInput.style.display = 'block';
+            confirmPasswordInput.focus();
+        }
+    }
+
+    function handleConfirmPasswordInput(event) {
+        if (event.key === 'Enter' && confirmPasswordInput.value.trim() !== '') {
+            if (confirmPasswordInput.value.trim() === passwordInput.value.trim()) {
+                alert('Sign Up successful!');
+                // You can store the new user in a database or array here
+            } else {
+                alert('Passwords do not match. Please try again.');
+            }
+        }
+    }
+
+    function switchToSignUp() {
+        switchToSignUpBtn.style.display = 'none';
+        switchToLoginBtn.style.display = 'block';
+        document.querySelector('#login-prompt').style.display = 'none';
+        idInput.style.display = 'none';
+        passwordPrompt.style.display = 'none';
+        passwordInput.style.display = 'none';
+        
+        signUpPrompt.style.display = 'block';
+        usernameInput.style.display = 'block';
+    }
+
+    function switchToLogin() {
+        switchToLoginBtn.style.display = 'none';
+        switchToSignUpBtn.style.display = 'block';
+        signUpPrompt.style.display = 'none';
+        usernameInput.style.display = 'none';
+        confirmPasswordPrompt.style.display = 'none';
+        confirmPasswordInput.style.display = 'none';
+
+        document.querySelector('#login-prompt').style.display = 'block';
+        idInput.style.display = 'block';
+    }
+</script>
+</body>
+</html>
